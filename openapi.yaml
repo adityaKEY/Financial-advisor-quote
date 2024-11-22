@@ -7,4 +7,76 @@ servers:
   - url: http://localhost:8082
     description: Development server
 paths:
-  
+  /quote/fetch-quote-meta-data:
+    post:
+      summary: Fetch meta data
+      description: Retrieves the meta data by meta master ids.
+      operationId: getMetaData
+      parameters:
+        - name: authorization
+          in: header
+          required: true
+          description: Bearer token for authorization.
+          schema:
+            type: string
+            example: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIs..."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - metaMasters
+              properties:
+                metaMasters:
+                  type: Array
+                  description: Meta masters of the Data
+                  example: ["e3c23553e41a43f29a647e6baac85edd", "d4509f51a74545dd97f04257b39e7843"]
+      responses:
+        "200":
+          description: Meta Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Status message
+                    example: "Meta Data retrieved successfully"
+                  data:
+                    type: object
+                    items:
+                      type: Array
+                      properties:
+                        idmetadata:
+                          type: string
+                          description: Unique identifier for the meta data
+                          example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                        meta_data_name:
+                          type: string
+                          description: Name of the meta data
+                          example: "Indian"
+                        idmetamaster:
+                          type: string
+                          description: Unique identifier for the Meta master
+                          example: "e3c23553e41a43f29a647e6baac85edd"
+                        meta_master_name:
+                          type: string
+                          description: Name of the meta data
+                          example: "Nationality"
+        "401":
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized access."

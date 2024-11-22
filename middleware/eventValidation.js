@@ -1,6 +1,6 @@
 const routeValues = require("../config/routesValues");
 const { validation } = require("../db");
-const { uniqueString, statusCodes, responseFormatter } = require("../utils");
+const { generateId, statusCodes, responseFormatter } = require("../utils");
 async function eventValidation(request, reply) {
   try {
     let route = request.url;
@@ -26,7 +26,7 @@ async function eventValidation(request, reply) {
         );
     } else {
       request.isValid = isValid[0];
-      request.isValid["idevent_transaction"] = uniqueString();
+      request.isValid["idevent_transaction"] = generateId.generateUniqueString();
     }
   } catch (error) {
     console.log(error);

@@ -1,9 +1,9 @@
-const uniqueString = require("./generateUniqueString");
+const generateId = require("./generateId");
 const responseFormatter = require("./responseFormatter");
 const statusCodes = require("./statusCodes");
 
 module.exports = {
-  uniqueString,
+  generateId,
   responseFormatter,
   statusCodes,
 };

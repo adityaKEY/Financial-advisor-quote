@@ -161,3 +161,129 @@ paths:
                   message:
                     type: string
                     example: "Unauthorized access."
+
+  /quote/create-quote:
+    post:
+      summary: Create a new quote
+      description: Creates a new quote with the provided details.
+      operationId: createQuote
+      parameters:
+        - name: authorization
+          in: header
+          required: true
+          description: Bearer token for authorization.
+          schema:
+            type: string
+            example: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIs..."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - leadid
+                - dob
+                - product_name
+                - nationality
+                - residential_status
+                - smoker
+                - occupation
+                - educational_background
+                - annual_income
+                - coverage_amount
+                - cover_till_age
+                - premium_payment_term
+                - payment_type
+                - base_premium
+                - add_on_rider_amt
+                - total_premium
+              properties:
+                leadid:
+                  type: string
+                  description: Unique identifier for the lead
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                dob:
+                  type: string
+                  description: DOB of the Lead
+                  example: "1995/10/12 (YYYY/MM/DD)"
+                product_name:
+                  type: string
+                  description: Unique identifier for the product
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                nationality:
+                  type: string
+                  description: Unique identifier for the nationality
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                residential_status:
+                  type: string
+                  description: Unique identifier for the residential_status
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                smoker:
+                  type: string
+                  description: Unique identifier for the smoker
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                occupation:
+                  type: string
+                  description: Unique identifier for the occupation
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                educational_background:
+                  type: string
+                  description: Unique identifier for the educational_background
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                annual_income:
+                  type: string
+                  description: Unique identifier for the annual_income
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                coverage_amount:
+                  type: string
+                  description: Unique identifier for the coverage_amount
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                cover_till_age:
+                  type: string
+                  description: Unique identifier for the cover_till_age
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                premium_payment_term:
+                  type: string
+                  description: Unique identifier for the premium_payment_term
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                payment_type:
+                  type: string
+                  description: Unique identifier for the payment_type
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                base_premium:
+                  type: string
+                  description: Unique identifier for the base_premium
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                add_on_rider_amt:
+                  type: string
+                  description: Unique identifier for the add_on_rider_amt
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+                total_premium:
+                  type: string
+                  description: Unique identifier for the total_premium
+                  example: "4678e1bb1f2d414393a85dfbe0c85fff"
+      responses:
+        "200":
+          description: Quote created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Quote created successfully."
+                  leadId:
+                    type: string
+                    example: "12345"
+        "401":
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized access."

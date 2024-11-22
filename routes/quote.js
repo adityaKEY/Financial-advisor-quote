@@ -13,6 +13,11 @@ async function quoteRoutes(fastify, options) {
         { preHandler: [authentication, validation] },
         quote.getLeadInfo
     );
+    fastify.post(
+        "/create-quote",
+        { preHandler: [authentication, validation] },
+        quote.createQuote
+    );
   }
   
   module.exports = quoteRoutes;

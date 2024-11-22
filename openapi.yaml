@@ -30,9 +30,13 @@ paths:
                 - metaMasters
               properties:
                 metaMasters:
-                  type: Array
+                  type: array
                   description: Meta masters of the Data
-                  example: ["e3c23553e41a43f29a647e6baac85edd", "d4509f51a74545dd97f04257b39e7843"]
+                  items:
+                    type: string
+                  example:
+                    - "e3c23553e41a43f29a647e6baac85edd"
+                    - "d4509f51a74545dd97f04257b39e7843"
       responses:
         "200":
           description: Meta Data retrieved successfully
@@ -50,9 +54,10 @@ paths:
                     description: Status message
                     example: "Meta Data retrieved successfully"
                   data:
-                    type: object
+                    type: array
+                    description: List of meta data objects
                     items:
-                      type: Array
+                      type: object
                       properties:
                         idmetadata:
                           type: string
@@ -70,6 +75,82 @@ paths:
                           type: string
                           description: Name of the meta data
                           example: "Nationality"
+        "401":
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized access."
+
+  /quote/get-lead-info:
+    post:
+      summary: Fetch lead information
+      description: Retrieves lead information based on the provided lead ID.
+      operationId: getLeadInfo
+      parameters:
+        - name: authorization
+          in: header
+          required: true
+          description: Bearer token for authorization.
+          schema:
+            type: string
+            example: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IjNQYUs0RWZ5Qk5RdTNDdGpZc2EzWW1oUTVFMCIsImtpZCI6IjNQYUs0RWZ5Qk5RdTNDdGpZc2EzWW1oUTVFMCJ9."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idlead
+              properties:
+                idlead:
+                  type: string
+                  description: Unique identifier for the lead.
+                  example: "9b454d3daaf17202a51cf8fc6e6f5597"
+      responses:
+        "200":
+          description: Lead information fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                    example: 200
+                  message:
+                    type: string
+                    description: Status message
+                    example: "Fetched Lead Info Successfully"
+                  data:
+                    type: object
+                    properties:
+                      firstname:
+                        type: string
+                        description: First name of the lead.
+                        example: "Aditya"
+                      lastname:
+                        type: string
+                        description: Last name of the lead.
+                        example: "TestDate"
+                      middlename:
+                        type: string
+                        description: Middle name of the lead (can be null).
+                        example: null
+                      contact_value:
+                        type: string
+                        description: Contact number of the lead.
+                        example: "9091342931"
+                      gender:
+                        type: string
+                        description: Gender of the lead.
+                        example: "Male"
         "401":
           description: Unauthorized - Invalid token
           content:

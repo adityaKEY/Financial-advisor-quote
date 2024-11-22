@@ -8,6 +8,11 @@ async function quoteRoutes(fastify, options) {
         { preHandler: [authentication, validation] },
         quote.getMetaData
     );
+    fastify.post(
+        "/get-lead-info",
+        { preHandler: [authentication, validation] },
+        quote.getLeadInfo
+    );
   }
   
   module.exports = quoteRoutes;

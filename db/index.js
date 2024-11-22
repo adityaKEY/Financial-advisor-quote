@@ -1,5 +1,9 @@
-// const entity = require("./entity");
+const quote = require("./quote");
+const event = require("./event");
+const validation = require("./validation");
 
-// module.exports = {
-//   entity,
-// };
+module.exports = {
+  quote,
+  event,
+  validation
+};

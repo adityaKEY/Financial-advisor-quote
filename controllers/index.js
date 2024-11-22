@@ -1,4 +1,4 @@
-// const user = require("./user");
-// module.exports = {
-//   user,
-// };
+const quote = require("./quote");
+module.exports = {
+  quote
+};

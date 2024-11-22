@@ -1,0 +1,10 @@
+openapi: 3.0.0
+info:
+  title: Financial Advisor Backend API
+  description: Backend service for the financial advisor frontend.
+  version: "1.0"
+servers:
+  - url: http://localhost:8082
+    description: Development server
+paths:
+  

@@ -13,11 +13,11 @@ const getMetaData = async (metaMasters) => {
     metaMasters.forEach((master, index) => {
       query += `$${index + 1}`;
       if (index != metaMasters.length - 1) {
-        query += ', ';
+        query += ", ";
       }
     });
 
-    query += `);`
+    query += `);`;
     const res = await client.query(query, metaMasters);
     return res.rows;
   } catch (error) {
@@ -26,7 +26,6 @@ const getMetaData = async (metaMasters) => {
   }
 };
 
-
 const getEntityIdentity = async (leadId) => {
   try {
     const query = `
@@ -34,15 +33,14 @@ const getEntityIdentity = async (leadId) => {
       identity_oppurtunity 
       FROM oppurtunity.lead
       WHERE idlead = $1`;
-      
+
     const res = await client.query(query, [leadId]);
     return res.rows[0].identity_oppurtunity;
   } catch (error) {
     console.error("Error: ", error);
     throw error;
   }
-}
-
+};
 
 const updateEntityDobByIdentity = async (identity, dob) => {
   try {
@@ -58,7 +56,7 @@ const updateEntityDobByIdentity = async (identity, dob) => {
     console.error("Error: ", error);
     throw error;
   }
-}
+};
 
 const createQuote = async (values) => {
   try {
@@ -90,24 +88,24 @@ const createQuote = async (values) => {
 
     const valuesArr = [
       values.quote_identity,
-      values.quick_quote_id, 
-      values.dob, 
+      values.quick_quote_id,
+      values.dob,
       values.product_name,
-      values.leadid, 
-      values.nationality, 
-      values.residential_status, 
-      values.smoker, 
-      values.occupation, 
-      values.educational_background, 
-      values.annual_income, 
-      values.coverage_amount, 
-      values.cover_till_age, 
-      values.premium_payment_term, 
-      values.payment_type, 
-      values.base_premium, 
-      values.add_on_rider_amt, 
-      values.total_premium
-    ]
+      values.leadid,
+      values.nationality,
+      values.residential_status,
+      values.smoker,
+      values.occupation,
+      values.educational_background,
+      values.annual_income,
+      values.coverage_amount,
+      values.cover_till_age,
+      values.premium_payment_term,
+      values.payment_type,
+      values.base_premium,
+      values.add_on_rider_amt,
+      values.total_premium,
+    ];
 
     const res = await client.query(query, valuesArr);
     return res.rows;
@@ -115,12 +113,98 @@ const createQuote = async (values) => {
     console.error("Error: ", error);
     throw error;
   }
-}
+};
 
+const getAddOnRider = async () => {
+  try {
+    const query = `
+    select 
+    p.idproduct, 
+    p.product_name, 
+    p.product_description 
+    from 
+    core.product p 
+    where idmeta_product_type = '7b7bb29b0c94475b8949770af6bcac52'
+    `;
+    const res = client.query(query);
+    return (await res).rows;
+  } catch (error) {
+    console.error("Error: ", error);
+    throw error;
+  }
+};
 
-  module.exports = {
-    getMetaData,
-    getEntityIdentity,
-    updateEntityDobByIdentity,
-    createQuote
-  };
+const getPremiumRawData = async (quoteArray) => {
+  try {
+    const query = `
+      SELECT 
+        qm2.meta_data_name,
+        qm.meta_master_name
+      FROM 
+        quote.qq_metadata qm2 
+      JOIN 
+        quote.qq_metamaster qm  
+      ON 
+        qm.idmetamaster = qm2.idmetamaster
+      WHERE 
+        qm2.idmetadata = ANY($1);
+    `;
+    const res = await client.query(query, [quoteArray]);
+    const premiumRawData = res.rows;
+
+    const transformedData = premiumRawData.reduce((acc, item) => {
+      const { meta_master_name, meta_data_name } = item;
+
+      if (meta_master_name === "Coverage_Amount") {
+        acc[meta_master_name] =
+          meta_data_name === "1 Cr"
+            ? 10000000
+            : meta_data_name === "50 Lakhs"
+            ? 5000000
+            : meta_data_name;
+      } else if (meta_master_name === "Premium_Payment_Term") {
+        acc[meta_master_name] = parseInt(meta_data_name.replace(/\D/g, ""), 10); // Extract numeric value
+      } else if (meta_master_name === "Coverage_Till_Age") {
+        acc[meta_master_name] = parseInt(meta_data_name, 10); // Convert to number
+      } else if (meta_master_name === "Smoker") {
+        acc[meta_master_name] = meta_data_name === "Yes" ? "Y" : "N"; // Convert Yes/No to Y/N
+      } else {
+        acc[meta_master_name] = meta_data_name; // Directly assign for other fields
+      }
+
+      return acc;
+    }, {});
+
+    return transformedData;
+  } catch (error) {
+    console.error("Error: ", error);
+    throw error;
+  }
+};
+
+const getProductName = async (idProduct) => {
+  try {
+    const query = `
+    Select product_name 
+    From
+    core.product cp
+    WHERE
+    cp.idproduct = $1
+    `;
+    const res = await client.query(query, [idProduct]);
+    return res.rows[0];
+  } catch (error) {
+    console.error("Error: ", error);
+    throw error;
+  }
+};
+
+module.exports = {
+  getMetaData,
+  getEntityIdentity,
+  updateEntityDobByIdentity,
+  createQuote,
+  getAddOnRider,
+  getPremiumRawData,
+  getProductName,
+};

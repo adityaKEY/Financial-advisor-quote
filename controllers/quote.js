@@ -301,3 +301,89 @@ exports.getAddOnPremium = async (request, reply) => {
     );
   }
 };
+
+exports.calculatePremium = async (request, reply) => {
+  try {
+    const premiumRequest = request.body;
+    const quoteArray = [
+      premiumRequest.smoker,
+      premiumRequest.premium_payment_term,
+      premiumRequest.cover_till_age,
+      premiumRequest.payment_type,
+      premiumRequest.coverage_amount,
+    ];
+    const premiumRawData = await quote.getPremiumRawData(quoteArray);
+    const productName = await quote.getProductName(premiumRequest.idproduct);
+    // Calculate gender
+    const gender = request.body.gender ? request.body.gender.toLowerCase() : "";
+    let result;
+    if (gender === "male") {
+      result = "M";
+    } else if (gender === "female") {
+      result = "F";
+    } else {
+      result = "T";
+    }
+
+    // Calculate age
+    const age =
+      new Date().getFullYear() - new Date(request.body.dob).getFullYear();
+
+    const urlData = [
+      {
+        age: age,
+        ppt: premiumRawData.Premium_Payment_Term,
+        gender: result,
+        product_term: premiumRawData.Coverage_Till_Age - age,
+        tobacco: premiumRawData.Smoker,
+        product_Name: productName.product_name.replace(/\s+/g, "_"), // Replace spaces with underscores
+      },
+    ];
+    const url = process.env.PREMIUM_URL;
+    const agent = new https.Agent({
+      rejectUnauthorized: false, // Disable SSL certificate verification
+    });
+
+    // Get premium rates from the external API
+    const premiumRate = await axios.post(url, urlData, { httpsAgent: agent });
+    let premium = premiumRate.data.results;
+    premium = premium[0].premium;
+    const premiumYearly = (premium / 1000) * premiumRawData.Coverage_Amount;
+    // Calculate the premium (adjusted for payment type)
+    switch (premiumRawData.Payment_Type.toLowerCase()) {
+      case "monthly":
+        calculatedPremium = premiumYearly / 12;
+        break;
+      case "quarterly":
+        calculatedPremium = premiumYearly / 4;
+        break;
+      case "half-yearly":
+        calculatedPremium = premiumYearly / 2;
+        break;
+      case "annual":
+        calculatedPremium = premiumYearly; // Annual premium is the yearly premium
+        break;
+      default:
+        return reply.status(400).send({
+          error:
+            "Invalid payment frequency. Please specify 'Monthly', 'Quarterly', 'Half-Yearly', or 'Annual'.",
+        });
+    }
+    return reply.status(statusCodes.OK).send(
+      responseFormatter(statusCodes.OK, "Calculated Premium", {
+        text: `@ ₹${calculatedPremium.toFixed(2)} / ${
+          premiumRawData.Payment_Type
+        }`, // Example text with calculated premium
+        premium: Number(calculatedPremium.toFixed(2)),
+      })
+    );
+  } catch (error) {
+    return reply.status(statusCodes.INTERNAL_SERVER_ERROR).send(
+      responseFormatter(
+        statusCodes.INTERNAL_SERVER_ERROR,
+        "Internal server error occurred",
+        { error: error.message } // Only pass error.message, not the whole error object
+      )
+    );
+  }
+};

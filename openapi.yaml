@@ -385,3 +385,88 @@ paths:
                   message:
                     type: string
                     example: "Unauthorized access."
+
+  /quote/calculate-premium:
+    post:
+      summary: Calculate Premium
+      description: Calculates the premium based on the user's details.
+      operationId: calculatePremium
+      parameters:
+        - name: authorization
+          in: header
+          required: true
+          description: Bearer token for authorization.
+          schema:
+            type: string
+            example: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIs..."
+        - name: Content-Type
+          in: header
+          required: true
+          description: Content type of the request.
+          schema:
+            type: string
+            example: "application/json"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dob:
+                  type: string
+                  example: "1996/11/28"
+                smoker:
+                  type: string
+                  example: "71bff4c295cc40cf88478e1e2f0120a3"
+                cover_till_age:
+                  type: string
+                  example: "a08385b3767f41339c45c43a66214b3a"
+                premium_payment_term:
+                  type: string
+                  example: "d316419fca9a40298242480d087d9fa0"
+                payment_type:
+                  type: string
+                  example: "8d2eb199fa42458bb99f0e9fde456be7"
+                coverage_amount:
+                  type: string
+                  example: "b1e9d8ef17c34dbdaac405f2ce3249b6"
+                idproduct:
+                  type: string
+                  example: "fb6186404c19446c8c17c8b874ea9f88"
+                gender:
+                  type: string
+                  example: "Male"
+      responses:
+        "200":
+          description: Calculated Premium Successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Calculated Premium"
+                  data:
+                    type: object
+                    properties:
+                      text:
+                        type: string
+                        example: "@ ₹97225.00 / Quarterly"
+                      premium:
+                        type: number
+                        example: 97225
+        "401":
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized access."

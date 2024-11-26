@@ -4,6 +4,7 @@ const { generateUniqueString } = require("../utils/generateId");
 const axios = require("axios");
 const https = require("https");
 require("dotenv").config();
+const moment = require("moment/moment");
 
 exports.getMetaData = async (request, reply) => {
   try {
@@ -90,7 +91,7 @@ exports.createQuote = async (request, reply) => {
     const reqBody = {
       quote_identity: generateId.generateUniqueString(),
       quick_quote_id: generateId.generateQuickQuiteId(),
-      dob: request.body.dob,
+      dob: moment(request.body.dob, "DD/MM/YYYY").format("YYYY/MM/DD"),
       product_name: request.body.product_name,
       leadid: request.body.leadid,
       nationality: request.body.nationality,

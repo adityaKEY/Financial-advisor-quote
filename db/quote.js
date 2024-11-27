@@ -163,8 +163,18 @@ const getPremiumRawData = async (quoteArray) => {
             ? 5000000
             : meta_data_name;
       } else if (meta_master_name === "Premium_Payment_Term") {
-        acc[meta_master_name] = parseInt(meta_data_name.replace(/\D/g, ""), 10); // Extract numeric value
-      } else if (meta_master_name === "Coverage_Till_Age") {
+        if (meta_data_name === "Single") {
+          acc[meta_master_name] = 1;
+        } else if (meta_data_name === "Regular") {
+          acc[meta_master_name] = 0;
+        } else {
+          // If it's neither "Single" nor "Regular", parse the number from meta_data_name
+          acc[meta_master_name] = parseInt(
+            meta_data_name.replace(/\D/g, ""),
+            10
+          );
+        }
+      } else if (meta_master_name === "Policy_Term") {
         acc[meta_master_name] = parseInt(meta_data_name, 10); // Convert to number
       } else if (meta_master_name === "Smoker") {
         acc[meta_master_name] = meta_data_name === "Yes" ? "Y" : "N"; // Convert Yes/No to Y/N

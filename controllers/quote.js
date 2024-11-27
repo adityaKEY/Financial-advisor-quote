@@ -18,7 +18,7 @@ exports.getMetaData = async (request, reply) => {
     if (metaMasters.includes("7b7bb29b0c94475b8949770af6bcac52")) {
       addOnRider = await quote.getAddOnRider();
     }
-    const metaData = await quote.getMetaData(metaMasters); // Getting meta data from DB & maping keys
+    const metaData = await quote.getMetaData(metaMasters); // Getting meta data from DB & mapping keys
 
     if (metaData.length > 0) {
       await event.insertEventTransaction(request.isValid);
@@ -26,9 +26,29 @@ exports.getMetaData = async (request, reply) => {
         if (!acc[item.meta_master_name]) {
           acc[item.meta_master_name] = [];
         }
+
+        // Check if meta_master_name is 'Payment_type_product_recommendation' or 'Investment_horizon'
+        if (item.meta_master_name === "Payment_type_product_recommendation") {
+          // Add 'selected' field based on meta_data_name value
+          if (item.meta_data_name === "Single") {
+            item.selected = true;
+          } else {
+            item.selected = false;
+          }
+        } else if (item.meta_master_name === "Investment_horizon") {
+          // Add 'selected' field based on meta_data_name value
+          if (item.meta_data_name === "Short term") {
+            item.selected = true;
+          } else {
+            item.selected = false;
+          }
+        }
+
+        // Push the item to the grouped data
         acc[item.meta_master_name].push(item);
         return acc;
       }, {});
+
       groupedData["Add_On_Riders"] = addOnRider;
       return reply
         .status(statusCodes.OK)
@@ -476,9 +496,13 @@ exports.productRecommendation = async (request, reply) => {
       httpsAgent: agent,
       headers: headers,
     });
+
     let productName = response.data.response_data.outputs.Product;
     productName = productName.trim();
     const productDetails = await quote.getProductDetails(productName);
+    productDetails.forEach((product) => {
+      product.premium_starts_at = `@ ₹${product.premium_starts_at} / Monthly`;
+    });
     await event.insertEventTransaction(request.isValid);
     return reply
       .status(statusCodes.OK)
@@ -585,15 +609,16 @@ exports.calculatePremiumForRecommendedProduct = async (request, reply) => {
     });
     const premium = response.data.response_data.outputs.DB;
     await event.insertEventTransaction(request.isValid);
-    return reply
-      .status(statusCodes.OK)
-      .send(
-        responseFormatter(
-          statusCodes.OK,
-          "Calculated Premiun For Recommended Product",
-          Number(premium.toFixed(2))
-        )
-      );
+    return reply.status(statusCodes.OK).send(
+      responseFormatter(
+        statusCodes.OK,
+        "Calculated Premiun For Recommended Product",
+        {
+          text: `@ ₹${premium.toFixed(2)} / ${premiumRawData.Payment_Type}`, // Example text with calculated premium
+          premium: Number(premium.toFixed(2)),
+        }
+      )
+    );
   } catch (error) {
     console.error("Error occurred while calculating premium: ", error);
     // Return an error response

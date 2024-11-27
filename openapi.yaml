@@ -470,3 +470,93 @@ paths:
                   message:
                     type: string
                     example: "Unauthorized access."
+
+  /quote/get-product-recommendations:
+    post:
+      summary: Get Product Recommendations
+      description: Returns a list of recommended products based on the user's input.
+      operationId: getProductRecommendations
+      parameters:
+        - name: authorization
+          in: header
+          required: true
+          description: Bearer token for authorization.
+          schema:
+            type: string
+            example: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IjNQYUs0RWZ5Qk5RdTNDdGpZc2EzWW1oUTVFMCIsImtpZCI6IjNQYUs0RWZ5Qk5RdTNDdGpZc2EzWW1oUTVFMCJ9"
+        - name: Content-Type
+          in: header
+          required: true
+          description: Content type of the request.
+          schema:
+            type: string
+            example: "application/json"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Investment_objective:
+                  type: string
+                  example: "dc98fa8f15e64f1685bb75b8041066ee"
+                Annual_Income:
+                  type: string
+                  example: "2657a8abc0184eaab95267f8fc733b19"
+                Current_life_stage:
+                  type: string
+                  example: "fabfec8f516745d98363ae27cfdc6e00"
+                Risk_reward_ratio:
+                  type: string
+                  example: "1d4d4696f9f64ec5a98fd409d1b4fda4"
+                Payment_type:
+                  type: string
+                  example: "aef630446e4f4a839aa9034db52eafc5"
+                Investment_horizon:
+                  type: string
+                  example: "f5430265349849129868dc50b8945760"
+                Age:
+                  type: string
+                  example: "17/11/1999"
+      responses:
+        "200":
+          description: Successfully retrieved recommended products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Recommended Products"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        idproduct:
+                          type: string
+                          example: "26805868a62c4598b4df050e9f3b6f19"
+                        product_name:
+                          type: string
+                          example: "Platinum wealth builder"
+                        product_description:
+                          type: string
+                          example: "Life’s journey made comfortable"
+                        premium_starts_at:
+                          type: integer
+                          example: 500
+        "401":
+          description: Unauthorized - Invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Unauthorized access."

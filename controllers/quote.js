@@ -476,16 +476,19 @@ exports.productRecommendation = async (request, reply) => {
       httpsAgent: agent,
       headers: headers,
     });
-    let productName = response.data.response_data.outputs.Product
+    let productName = response.data.response_data.outputs.Product;
     productName = productName.trim();
     const productDetails = await quote.getProductDetails(productName);
-    return reply.status(statusCodes.OK).send(
-      responseFormatter(
-        statusCodes.OK,
-        "Recommended Products",
-        productDetails
-      )
-    );
+    await event.insertEventTransaction(request.isValid);
+    return reply
+      .status(statusCodes.OK)
+      .send(
+        responseFormatter(
+          statusCodes.OK,
+          "Recommended Products",
+          productDetails
+        )
+      );
   } catch (error) {
     // Log only the necessary parts of the error object
     console.error("Error occurred while calculating premium: ", error);

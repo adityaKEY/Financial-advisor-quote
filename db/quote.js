@@ -209,6 +209,26 @@ const getProductName = async (idProduct) => {
   }
 };
 
+const getProductDetails = async (productName) => {
+  try {
+    const query = `
+    Select 
+    cp.idproduct,
+    cp.product_name,
+    cp.product_description,
+    cp.premium_starts_at
+    from 
+    core.product cp 
+    where product_name = $1
+    `;
+    const res = await client.query(query, [productName]);
+    return res.rows;
+  } catch (error) {
+    console.error("Error: ", error);
+    throw error;
+  }
+};
+
 module.exports = {
   getMetaData,
   getEntityIdentity,
@@ -217,4 +237,5 @@ module.exports = {
   getAddOnRider,
   getPremiumRawData,
   getProductName,
+  getProductDetails,
 };

@@ -1,4 +1,9 @@
-const { responseFormatter, statusCodes, generateId } = require("../utils");
+const {
+  responseFormatter,
+  statusCodes,
+  generateId,
+  modifyAge,
+} = require("../utils");
 const { event, quote, lead } = require("../db");
 const { generateUniqueString } = require("../utils/generateId");
 const axios = require("axios");
@@ -286,7 +291,7 @@ exports.getAddOnPremium = async (request, reply) => {
         };
       })
       .filter((item) => item.coverage_amount.length > 0); // Filter out items with empty coverage_amount arrays
-
+    await event.insertEventTransaction(request.isValid);
     // Construct the final response
     return reply
       .status(statusCodes.OK)
@@ -391,6 +396,7 @@ exports.calculatePremium = async (request, reply) => {
             "Invalid payment frequency. Please specify 'Monthly', 'Quarterly', 'Half-Yearly', or 'Annual'.",
         });
     }
+    await event.insertEventTransaction(request.isValid);
     return reply.status(statusCodes.OK).send(
       responseFormatter(statusCodes.OK, "Calculated Premium", {
         text: `@ ₹${calculatedPremium.toFixed(2)} / ${
@@ -400,6 +406,90 @@ exports.calculatePremium = async (request, reply) => {
       })
     );
   } catch (error) {
+    return reply.status(statusCodes.INTERNAL_SERVER_ERROR).send(
+      responseFormatter(
+        statusCodes.INTERNAL_SERVER_ERROR,
+        "Internal server error occurred",
+        { error: error.message } // Only pass error.message, not the whole error object
+      )
+    );
+  }
+};
+
+exports.productRecommendation = async (request, reply) => {
+  try {
+    const premiumRequest = request.body;
+    const quoteArray = [
+      premiumRequest.Investment_objective,
+      premiumRequest.Annual_Income,
+      premiumRequest.Current_life_stage,
+      premiumRequest.Risk_reward_ratio,
+      premiumRequest.Payment_type,
+      premiumRequest.Investment_horizon,
+    ];
+    const premiumRawData = await quote.getPremiumRawData(quoteArray);
+    const dob = request.body.Age; // "17/11/1999"
+    const [day, month, year] = dob.split("/"); // Destructure the day, month, and year
+
+    // Create a valid Date object
+    const birthDate = new Date(year, month - 1, day); // month is zero-indexed
+
+    // Calculate age
+    const age = new Date().getFullYear() - birthDate.getFullYear();
+    const ageAtDate =
+      new Date().getMonth() < birthDate.getMonth() ||
+      (new Date().getMonth() === birthDate.getMonth() &&
+        new Date().getDate() < birthDate.getDate())
+        ? age - 1
+        : age;
+    premiumRawData["Age"] = ageAtDate;
+    const modifiedData = await modifyAge(premiumRawData);
+
+    const agent = new https.Agent({
+      rejectUnauthorized: false,
+    });
+    const url = process.env.PRODUCTRECOMMENDATIONURL;
+    const headers = {
+      "x-tenant-name": "actuarial",
+      "x-synthetic-key": process.env.SYNTHETIC_KEY,
+      "Content-Type": "application/json",
+    };
+    const data = {
+      request_data: {
+        inputs: {
+          Investment_objective: modifiedData.Investment_objective,
+          Annual_Income: modifiedData.Annual_Income,
+          Current_life_stage: modifiedData.Current_life_stage,
+          Risk_reward_ratio: modifiedData.Risk_reward_ratio,
+          Payment_type: modifiedData.Payment_type_product_recommendation,
+          Investment_horizon: modifiedData.Investment_horizon,
+          Age: modifiedData.Age,
+        },
+      },
+      request_meta: {
+        call_purpose: "EY India Demo - Integration",
+        source_system: "Curl Demo",
+        correlation_id: "my-test-id",
+      },
+    };
+    const response = await axios.post(url, data, {
+      httpsAgent: agent,
+      headers: headers,
+    });
+    let productName = response.data.response_data.outputs.Product
+    productName = productName.trim();
+    const productDetails = await quote.getProductDetails(productName);
+    return reply.status(statusCodes.OK).send(
+      responseFormatter(
+        statusCodes.OK,
+        "Recommended Products",
+        productDetails
+      )
+    );
+  } catch (error) {
+    // Log only the necessary parts of the error object
+    console.error("Error occurred while calculating premium: ", error);
+    // Return an error response
     return reply.status(statusCodes.INTERNAL_SERVER_ERROR).send(
       responseFormatter(
         statusCodes.INTERNAL_SERVER_ERROR,

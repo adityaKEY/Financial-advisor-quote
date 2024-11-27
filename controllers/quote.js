@@ -159,7 +159,7 @@ exports.getAddOnPremium = async (request, reply) => {
     const quoteArray = [
       premiumRequest.smoker,
       premiumRequest.premium_payment_term,
-      premiumRequest.cover_till_age,
+      premiumRequest.policy_term,
       premiumRequest.payment_type,
     ];
     const premiumRawData = await quote.getPremiumRawData(quoteArray);
@@ -173,10 +173,20 @@ exports.getAddOnPremium = async (request, reply) => {
     } else {
       result = "T";
     }
+    const dob = request.body.dob; // "17/11/1999"
+    const [day, month, year] = dob.split("/"); // Destructure the day, month, and year
+
+    // Create a valid Date object
+    const birthDate = new Date(year, month - 1, day); // month is zero-indexed
 
     // Calculate age
-    const age =
-      new Date().getFullYear() - new Date(request.body.dob).getFullYear();
+    const age = new Date().getFullYear() - birthDate.getFullYear();
+    const ageAtDate =
+      new Date().getMonth() < birthDate.getMonth() ||
+      (new Date().getMonth() === birthDate.getMonth() &&
+        new Date().getDate() < birthDate.getDate())
+        ? age - 1
+        : age;
 
     // Function to convert coverage amounts to numeric values
     const convertToNumeric = (coverageString) => {
@@ -191,10 +201,10 @@ exports.getAddOnPremium = async (request, reply) => {
     // Prepare data for the axios POST request
     const data = addOnRider.map((item) => {
       return {
-        age: age,
+        age: ageAtDate,
         ppt: premiumRawData.Premium_Payment_Term,
         gender: result,
-        product_term: premiumRawData.Coverage_Till_Age - age,
+        product_term: premiumRawData.Policy_Term,
         tobacco: premiumRawData.Smoker,
         product_Name: item.product_name.replace(/\s+/g, "_"), // Replace spaces with underscores
       };
@@ -308,7 +318,7 @@ exports.calculatePremium = async (request, reply) => {
     const quoteArray = [
       premiumRequest.smoker,
       premiumRequest.premium_payment_term,
-      premiumRequest.cover_till_age,
+      premiumRequest.policy_term,
       premiumRequest.payment_type,
       premiumRequest.coverage_amount,
     ];
@@ -326,15 +336,27 @@ exports.calculatePremium = async (request, reply) => {
     }
 
     // Calculate age
-    const age =
-      new Date().getFullYear() - new Date(request.body.dob).getFullYear();
+    const dob = request.body.dob; // "17/11/1999"
+    const [day, month, year] = dob.split("/"); // Destructure the day, month, and year
+
+    // Create a valid Date object
+    const birthDate = new Date(year, month - 1, day); // month is zero-indexed
+
+    // Calculate age
+    const age = new Date().getFullYear() - birthDate.getFullYear();
+    const ageAtDate =
+      new Date().getMonth() < birthDate.getMonth() ||
+      (new Date().getMonth() === birthDate.getMonth() &&
+        new Date().getDate() < birthDate.getDate())
+        ? age - 1
+        : age;
 
     const urlData = [
       {
-        age: age,
+        age: ageAtDate,
         ppt: premiumRawData.Premium_Payment_Term,
         gender: result,
-        product_term: premiumRawData.Coverage_Till_Age - age,
+        product_term: premiumRawData.Policy_Term,
         tobacco: premiumRawData.Smoker,
         product_Name: productName.product_name.replace(/\s+/g, "_"), // Replace spaces with underscores
       },

@@ -502,3 +502,107 @@ exports.productRecommendation = async (request, reply) => {
     );
   }
 };
+
+exports.calculatePremiumForRecommendedProduct = async (request, reply) => {
+  try {
+    const premiumRequest = request.body;
+    const quoteArray = [
+      premiumRequest.smoker,
+      premiumRequest.premium_payment_term,
+      premiumRequest.policy_term,
+      premiumRequest.payment_type,
+    ];
+    const premiumRawData = await quote.getPremiumRawData(quoteArray);
+    let smokerValue =
+      premiumRawData.Smoker === "N"
+        ? "NS"
+        : premiumRawData.Smoker === "Y"
+        ? "S"
+        : premiumRawData.Smoker;
+    const dob = request.body.Age;
+    const [day, month, year] = dob.split("/");
+    const birthDate = new Date(year, month - 1, day);
+    const age = new Date().getFullYear() - birthDate.getFullYear();
+    const ageAtDate =
+      new Date().getMonth() < birthDate.getMonth() ||
+      (new Date().getMonth() === birthDate.getMonth() &&
+        new Date().getDate() < birthDate.getDate())
+        ? age - 1
+        : age;
+
+    const gender = request.body.gender ? request.body.gender.toLowerCase() : "";
+    let result;
+    if (gender === "male") {
+      result = "M";
+    } else if (gender === "female") {
+      result = "F";
+    } else {
+      result = "T";
+    }
+    const data = {
+      request_data: {
+        inputs: {
+          Age: ageAtDate,
+          AnnDivSwitch: "Y", // hardcoded
+          CalBy: "Sum Assured", // hardcoded
+          Currency: "SGD", //hardcoded
+          DBOption: 1, //hardcoded
+          DBPercentage: 1.1, //hardcoded
+          Gender: result,
+          InterestRate: 0.06, //hardcoded
+          MaturityAge: ageAtDate + premiumRawData.Policy_Term, // age + policy_term
+          PremFrequency: 4,
+          PremTerm: premiumRawData.PPT_RECOMMENDED_PRODUCT,
+          Smoking: smokerValue,
+          SumAssured: premiumRequest.sumAssured,
+          TargetPremium: 3022, // hardcoded
+          TermBonusSwitch: "Y", // hardcoded
+          BI: {
+            FileName: "",
+            ReportName: "BI",
+          },
+        },
+      },
+      request_meta: {
+        call_purpose: "EY India Demo - Integration",
+        source_system: "Curl Demo",
+        correlation_id: "my-test-id",
+      },
+    };
+    const agent = new https.Agent({
+      rejectUnauthorized: false, // Disable SSL certificate verification
+    });
+    const headers = {
+      "x-tenant-name": "actuarial",
+      "x-synthetic-key": process.env.SYNTHETIC_KEY,
+      "Content-Type": "application/json",
+    };
+    const url = process.env.PRODUCTPREMIUMCALCULATION;
+    // const response = await axios.post(url, config);
+    const response = await axios.post(url, data, {
+      httpsAgent: agent,
+      headers: headers,
+    });
+    const premium = response.data.response_data.outputs.DB;
+    await event.insertEventTransaction(request.isValid);
+    return reply
+      .status(statusCodes.OK)
+      .send(
+        responseFormatter(
+          statusCodes.OK,
+          "Calculated Premiun For Recommended Product",
+          Number(premium.toFixed(2))
+        )
+      );
+  } catch (error) {
+    console.error("Error occurred while calculating premium: ", error);
+    // Return an error response
+    return reply.status(statusCodes.INTERNAL_SERVER_ERROR).send(
+      responseFormatter(
+        statusCodes.INTERNAL_SERVER_ERROR,
+        "Internal server error occurred",
+        { error: error.message } // Only pass error.message, not the whole error object
+      )
+    );
+  }
+};

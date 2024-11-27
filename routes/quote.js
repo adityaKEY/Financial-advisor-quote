@@ -32,6 +32,11 @@ async function quoteRoutes(fastify, options) {
     { preHandler: [authentication, validation] },
     quote.productRecommendation
   );
+  fastify.post(
+    "/calculate-premium-product-recommendations",
+    { preHandler: [authentication, validation] },
+    quote.calculatePremiumForRecommendedProduct
+  );
 }
 
 module.exports = quoteRoutes;

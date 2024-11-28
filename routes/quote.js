@@ -37,6 +37,11 @@ async function quoteRoutes(fastify, options) {
     { preHandler: [authentication, validation] },
     quote.calculatePremiumForRecommendedProduct
   );
+  fastify.get(
+    "/get-quote-count",
+    { preHandler: [authentication, validation] },
+    quote.getQuoteCount
+  );
 }
 
 module.exports = quoteRoutes;

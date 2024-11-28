@@ -7,4 +7,5 @@ exports.routeValues = {
   "/quote/get-product-recommendations": "c2a04e70f16541f5b52f1b0803ee46d3",
   "/quote/calculate-premium-product-recommendations":
     "c2a04e70f16541f5b52f1b0803ee46d3",
+  "/quote/get-quote-count": "c2a04e70f16541f5b52f1b0803ee46d3",
 };

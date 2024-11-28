@@ -229,6 +229,20 @@ const getProductDetails = async (productName) => {
   }
 };
 
+const quoteCount = async () => {
+  try {
+    const query = `
+    SELECT COUNT(*) AS quote_count
+    FROM quote.quote;
+    `;
+    const res = await client.query(query);
+    return res.rows;
+  } catch (error) {
+    console.error("Error: ", error);
+    throw error;
+  }
+};
+
 module.exports = {
   getMetaData,
   getEntityIdentity,
@@ -238,4 +252,5 @@ module.exports = {
   getPremiumRawData,
   getProductName,
   getProductDetails,
+  quoteCount,
 };

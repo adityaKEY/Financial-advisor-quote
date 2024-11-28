@@ -631,3 +631,26 @@ exports.calculatePremiumForRecommendedProduct = async (request, reply) => {
     );
   }
 };
+
+exports.getQuoteCount = async (request, reply) => {
+  try {
+    const quoteCount = await quote.quoteCount();
+    return reply.status(statusCodes.OK).send(
+      responseFormatter(
+        statusCodes.OK,
+        "Quote Count",
+        quoteCount[0]
+      )
+    );
+  } catch (error) {
+    console.error("Error occurred while calculating premium: ", error);
+    // Return an error response
+    return reply.status(statusCodes.INTERNAL_SERVER_ERROR).send(
+      responseFormatter(
+        statusCodes.INTERNAL_SERVER_ERROR,
+        "Internal server error occurred",
+        { error: error.message } // Only pass error.message, not the whole error object
+      )
+    );
+  }
+};

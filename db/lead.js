@@ -7,7 +7,7 @@ const getLeadInfo = async (idlead, identity) => {
     COALESCE(e.firstname, '') AS firstname, 
     COALESCE(e.lastname, '') AS lastname, 
     COALESCE(e.middlename, '') AS middlename, 
-    COALESCE(ec_phone.contact_value, '') AS phone, 
+    COALESCE(ec_phone.contact_value, '') AS contact_value, 
     COALESCE(cm.meta_data_name, '') AS gender,
     COALESCE(ec_email.contact_value, '') AS email
     FROM 

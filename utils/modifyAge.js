@@ -167,4 +167,42 @@ async function modifyAge(investmentObject) {
   return investmentObject;
 }
 
-module.exports = modifyAge;
+const productData = {
+  101: { productName: "iSecure Plan", planType: "Term Plan" },
+  102: { productName: "Saral Jevaan Bima", planType: "Term Plan" },
+  103: {
+    productName: "Termassurance Life Insurance Protection",
+    planType: "Term Plan",
+  },
+  104: { productName: "Guaranteed wealth plan", planType: "Savings Plan" },
+  105: { productName: "Magic savings plan", planType: "Savings Plan" },
+  106: { productName: "Assured Income plan", planType: "Savings Plan" },
+  107: { productName: "Platinum wealth builder", planType: "ULIP Plan" },
+  108: { productName: "Smart growth plan", planType: "ULIP Plan" },
+  109: { productName: "Golden year pension plan", planType: "Retirement Plan" },
+  110: { productName: "Saral pension plan", planType: "Retirement Plan" },
+  111: {
+    productName: "Gaurenteed Lifetime Income plan",
+    planType: "Retirement Plan",
+  },
+  204: { productName: "Accidental Death Benefit rider", planType: "Rider" },
+  205: { productName: "Permanent Disability Rider", planType: "Rider" },
+  206: { productName: "Critical illness rider", planType: "Rider" },
+  207: { productName: "Premium Waiver rider", planType: "Rider" },
+};
+
+function getProductDetails(productCode) {
+  const product = productData[productCode];
+  if (product) {
+    console.log(`Product Name: ${product.productName}`);
+    console.log(`Plan Type: ${product.planType}`);
+    return product;
+  } else {
+    console.log("Product code not found.");
+  }
+}
+
+// Example usage: Call the function with a product code
+// getProductDetails(101);
+
+module.exports = { modifyAge, getProductDetails };

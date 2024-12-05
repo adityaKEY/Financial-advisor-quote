@@ -3,6 +3,7 @@ const {
   statusCodes,
   generateId,
   modifyAge,
+  quoteUtils,
 } = require("../utils");
 const { event, quote, lead } = require("../db");
 const { generateUniqueString } = require("../utils/generateId");
@@ -463,46 +464,31 @@ exports.productRecommendation = async (request, reply) => {
         ? age - 1
         : age;
     premiumRawData["Age"] = ageAtDate;
-    const modifiedData = await modifyAge(premiumRawData);
-
+    premiumRawData["Payment_type"] =
+      premiumRawData["Payment_type_product_recommendation"];
+    delete premiumRawData["Payment_type_product_recommendation"];
     const agent = new https.Agent({
       rejectUnauthorized: false,
     });
-    const url = process.env.PRODUCTRECOMMENDATIONURL;
-    const headers = {
-      "x-tenant-name": "actuarial",
-      "x-synthetic-key": process.env.SYNTHETIC_KEY,
-      "Content-Type": "application/json",
-    };
-    const data = {
-      request_data: {
-        inputs: {
-          Investment_objective: modifiedData.Investment_objective,
-          Annual_Income: modifiedData.Annual_Income,
-          Current_life_stage: modifiedData.Current_life_stage,
-          Risk_reward_ratio: modifiedData.Risk_reward_ratio,
-          Payment_type: modifiedData.Payment_type_product_recommendation,
-          Investment_horizon: modifiedData.Investment_horizon,
-          Age: modifiedData.Age,
-        },
-      },
-      request_meta: {
-        call_purpose: "EY India Demo - Integration",
-        source_system: "Curl Demo",
-        correlation_id: "my-test-id",
-      },
-    };
-    const response = await axios.post(url, data, {
+    const url = process.env.GETRULEURL;
+    premiumRawData["collectionName"] = "productRecommendation";
+    const response = await axios.get(url, {
+      params: premiumRawData,
       httpsAgent: agent,
-      headers: headers,
     });
-
-    let productName = response.data.response_data.outputs.Product;
-    productName = productName.trim();
-    const productDetails = await quote.getProductDetails(productName);
-    productDetails.forEach((product) => {
-      product.premium_starts_at = `@ ₹${product.premium_starts_at} / Monthly`;
+    const productIds = response.data.then.Product;
+    const productDetailsPromises = productIds.map(async (productId) => {
+      let product = await modifyAge.getProductDetails(productId); // Implement this function to fetch product name
+      let productName = product.productName.trim();
+      const productDetails = await quote.getProductDetails(productName);
+      productDetails[0][
+        "premium_starts"
+      ] = `@ ₹${productDetails[0].premium_starts_at} / Monthly`;
+      productDetails[0]["planType"] = product.planType;
+      return productDetails;
     });
+    const productDetailsArray = await Promise.all(productDetailsPromises);
+    const flattenedProductDetails = productDetailsArray.flat();
     await event.insertEventTransaction(request.isValid);
     return reply
       .status(statusCodes.OK)
@@ -510,9 +496,45 @@ exports.productRecommendation = async (request, reply) => {
         responseFormatter(
           statusCodes.OK,
           "Recommended Products",
-          productDetails
+          flattenedProductDetails
         )
       );
+    // const modifiedData = await modifyAge(premiumRawData);
+
+    // const headers = {
+    //   "x-tenant-name": "actuarial",
+    //   "x-synthetic-key": process.env.SYNTHETIC_KEY,
+    //   "Content-Type": "application/json",
+    // };
+    // const data = {
+    //   request_data: {
+    //     inputs: {
+    //       Investment_objective: modifiedData.Investment_objective,
+    //       Annual_Income: modifiedData.Annual_Income,
+    //       Current_life_stage: modifiedData.Current_life_stage,
+    //       Risk_reward_ratio: modifiedData.Risk_reward_ratio,
+    //       Payment_type: modifiedData.Payment_type_product_recommendation,
+    //       Investment_horizon: modifiedData.Investment_horizon,
+    //       Age: modifiedData.Age,
+    //     },
+    //   },
+    //   request_meta: {
+    //     call_purpose: "EY India Demo - Integration",
+    //     source_system: "Curl Demo",
+    //     correlation_id: "my-test-id",
+    //   },
+    // };
+    // const response = await axios.post(url, data, {
+    //   httpsAgent: agent,
+    //   headers: headers,
+    // });
+
+    // let productName = response.data.response_data.outputs.Product;
+    // productName = productName.trim();
+    // const productDetails = await quote.getProductDetails(productName);
+    // productDetails.forEach((product) => {
+    //   product.premium_starts_at = `@ ₹${product.premium_starts_at} / Monthly`;
+    // });
   } catch (error) {
     // Log only the necessary parts of the error object
     console.error("Error occurred while calculating premium: ", error);
@@ -635,13 +657,9 @@ exports.calculatePremiumForRecommendedProduct = async (request, reply) => {
 exports.getQuoteCount = async (request, reply) => {
   try {
     const quoteCount = await quote.quoteCount();
-    return reply.status(statusCodes.OK).send(
-      responseFormatter(
-        statusCodes.OK,
-        "Quote Count",
-        quoteCount[0]
-      )
-    );
+    return reply
+      .status(statusCodes.OK)
+      .send(responseFormatter(statusCodes.OK, "Quote Count", quoteCount[0]));
   } catch (error) {
     console.error("Error occurred while calculating premium: ", error);
     // Return an error response
@@ -652,5 +670,34 @@ exports.getQuoteCount = async (request, reply) => {
         { error: error.message } // Only pass error.message, not the whole error object
       )
     );
+  }
+};
+
+exports.createQuoteNvest = async (request, reply) => {
+  try {
+    let quick_quote_id;
+    if (request.body.planType == "ULIP Plan") {
+      quick_quote_id = await quoteUtils.createULIPQuote(reqBody);
+    } else if (request.body.planType == "TERM Plan") {
+      quick_quote_id = await quoteUtils.createTERMQuote(reqBody);
+    } else {
+      quick_quote_id = await quoteUtils.createQuote(reqBody);
+    }
+    await event.insertEventTransaction(request.isValid);
+    return reply.status(statusCodes.OK).send(
+      responseFormatter(statusCodes.OK, "Quote created successfully", {
+        quick_quote_id: quick_quote_id,
+      })
+    );
+  } catch (error) {
+    return reply
+      .status(statusCodes.INTERNAL_SERVER_ERROR)
+      .send(
+        responseFormatter(
+          statusCodes.INTERNAL_SERVER_ERROR,
+          "Internal server error occurred",
+          { error: error.message }
+        )
+      );
   }
 };

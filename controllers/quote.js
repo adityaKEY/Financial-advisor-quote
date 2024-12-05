@@ -471,7 +471,7 @@ exports.productRecommendation = async (request, reply) => {
       rejectUnauthorized: false,
     });
     const url = process.env.GETRULEURL;
-    premiumRawData["collectionName"] = "productRecommendation";
+    premiumRawData["collectionName"] = "productRecommendationNvest";
     const response = await axios.get(url, {
       params: premiumRawData,
       httpsAgent: agent,
@@ -485,6 +485,7 @@ exports.productRecommendation = async (request, reply) => {
         "premium_starts"
       ] = `@ ₹${productDetails[0].premium_starts_at} / Monthly`;
       productDetails[0]["planType"] = product.planType;
+      productDetails[0]["productID"] = productId;
       return productDetails;
     });
     const productDetailsArray = await Promise.all(productDetailsPromises);
@@ -675,20 +676,70 @@ exports.getQuoteCount = async (request, reply) => {
 
 exports.createQuoteNvest = async (request, reply) => {
   try {
-    let quick_quote_id;
-    if (request.body.planType == "ULIP Plan") {
-      quick_quote_id = await quoteUtils.createULIPQuote(reqBody);
-    } else if (request.body.planType == "TERM Plan") {
-      quick_quote_id = await quoteUtils.createTERMQuote(reqBody);
-    } else {
-      quick_quote_id = await quoteUtils.createQuote(reqBody);
-    }
+    const quick_quote_id = await quoteUtils.createQuote(request.body);
     await event.insertEventTransaction(request.isValid);
     return reply.status(statusCodes.OK).send(
       responseFormatter(statusCodes.OK, "Quote created successfully", {
         quick_quote_id: quick_quote_id,
       })
     );
+  } catch (error) {
+    return reply
+      .status(statusCodes.INTERNAL_SERVER_ERROR)
+      .send(
+        responseFormatter(
+          statusCodes.INTERNAL_SERVER_ERROR,
+          "Internal server error occurred",
+          { error: error.message }
+        )
+      );
+  }
+};
+
+exports.getQuote = async (request, reply) => {
+  try {
+    const quote = await quoteUtils.getQuote(request.body);
+    if (quote) {
+      await event.insertEventTransaction(request.isValid);
+      return reply.status(statusCodes.OK).send(
+        responseFormatter(statusCodes.OK, "Quote fetched successfully", {
+          quote,
+        })
+      );
+    } else {
+      return reply
+        .status(statusCodes.OK)
+        .send(responseFormatter(statusCodes.OK, "Quote not found", {}));
+    }
+  } catch (error) {
+    console.log(error);
+    return reply
+      .status(statusCodes.INTERNAL_SERVER_ERROR)
+      .send(
+        responseFormatter(
+          statusCodes.INTERNAL_SERVER_ERROR,
+          "Internal server error occurred",
+          { error: error.message }
+        )
+      );
+  }
+};
+
+exports.getFields = async (request, reply) => {
+  try {
+    const fields = await quoteUtils.getFields(request.body);
+    if (fields) {
+      await event.insertEventTransaction(request.isValid);
+      return reply.status(statusCodes.OK).send(
+        responseFormatter(statusCodes.OK, "Fields fetched successfully", {
+          fields,
+        })
+      );
+    } else {
+      return reply
+        .status(statusCodes.OK)
+        .send(responseFormatter(statusCodes.OK, "fields not found", {}));
+    }
   } catch (error) {
     return reply
       .status(statusCodes.INTERNAL_SERVER_ERROR)

@@ -8,4 +8,7 @@ exports.routeValues = {
   "/quote/calculate-premium-product-recommendations":
     "c2a04e70f16541f5b52f1b0803ee46d3",
   "/quote/get-quote-count": "c2a04e70f16541f5b52f1b0803ee46d3",
+  "/quote/create-quote-nvest": "c2a04e70f16541f5b52f1b0803ee46d3",
+  "/quote/get-quote": "c2a04e70f16541f5b52f1b0803ee46d3",
+  "/quote/get-fields": "c2a04e70f16541f5b52f1b0803ee46d3",
 };

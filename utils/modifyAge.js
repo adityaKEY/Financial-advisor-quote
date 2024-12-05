@@ -168,20 +168,20 @@ async function modifyAge(investmentObject) {
 }
 
 const productData = {
-  101: { productName: "iSecure Plan", planType: "Term Plan" },
-  102: { productName: "Saral Jevaan Bima", planType: "Term Plan" },
-  103: {
+  1016: { productName: "iSecure Plan", planType: "Term Plan" },
+  1024: { productName: "Saral Jevaan Bima", planType: "Term Plan" },
+  1027: {
     productName: "Termassurance Life Insurance Protection",
     planType: "Term Plan",
   },
-  104: { productName: "Guaranteed wealth plan", planType: "Savings Plan" },
-  105: { productName: "Magic savings plan", planType: "Savings Plan" },
-  106: { productName: "Assured Income plan", planType: "Savings Plan" },
-  107: { productName: "Platinum wealth builder", planType: "ULIP Plan" },
-  108: { productName: "Smart growth plan", planType: "ULIP Plan" },
-  109: { productName: "Golden year pension plan", planType: "Retirement Plan" },
-  110: { productName: "Saral pension plan", planType: "Retirement Plan" },
-  111: {
+  1210: { productName: "Guaranteed wealth plan", planType: "Savings Plan" },
+  13016: { productName: "Magic savings plan", planType: "Savings Plan" },
+  80018: { productName: "Assured Income plan", planType: "Savings Plan" },
+  80019: { productName: "Platinum wealth builder", planType: "ULIP Plan" },
+  1211: { productName: "Smart growth plan", planType: "ULIP Plan" },
+  1220: { productName: "Golden year pension plan", planType: "Retirement Plan" },
+  1721: { productName: "Saral pension plan", planType: "Retirement Plan" },
+  9009: {
     productName: "Gaurenteed Lifetime Income plan",
     planType: "Retirement Plan",
   },

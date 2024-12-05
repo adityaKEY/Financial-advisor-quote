@@ -42,6 +42,21 @@ async function quoteRoutes(fastify, options) {
     { preHandler: [authentication, validation] },
     quote.getQuoteCount
   );
+  fastify.post(
+    "/create-quote-nvest",
+    { preHandler: [authentication, validation] },
+    quote.createQuoteNvest
+  );
+  fastify.post(
+    "/get-quote",
+    { preHandler: [authentication, validation] },
+    quote.getQuote
+  );
+  fastify.post(
+    "/get-fields",
+    { preHandler: [authentication, validation] },
+    quote.getFields
+  );
 }
 
 module.exports = quoteRoutes;

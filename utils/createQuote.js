@@ -54,6 +54,21 @@ const getFields = async (quoteData) => {
       params: quoteData,
       httpsAgent: agent,
     });
+
+    const { ptPptList, formInputs } = response.data;
+    const pptList = ptPptList.map(item => ({ key: item.PPTName, value: item.PPTValue }));
+    const ptList = ptPptList.map(item => ({ key: item.PTName, value: item.PTValue }));
+
+    formInputs.forEach(input => {
+      if (input.fieldType === 'List' && input.listItems.length === 0) {
+        if (input.keywordName === '@PR_PPT') {
+          input.listItems = pptList;
+        } else if (input.keywordName === '@PR_PT') {
+          input.listItems = ptList;
+        }
+      }
+    });
+
     return response.data;
   } catch (error) {
     throw error;

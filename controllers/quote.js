@@ -4,6 +4,7 @@ const {
   generateId,
   modifyAge,
   quoteUtils,
+  azureBlob,
 } = require("../utils");
 const { event, quote, lead } = require("../db");
 const { generateUniqueString } = require("../utils/generateId");
@@ -676,11 +677,11 @@ exports.getQuoteCount = async (request, reply) => {
 
 exports.createQuoteNvest = async (request, reply) => {
   try {
-    const quick_quote_id = await quoteUtils.createQuote(request.body);
+    const quick_quote = await quoteUtils.createQuote(request.body);
     await event.insertEventTransaction(request.isValid);
     return reply.status(statusCodes.OK).send(
       responseFormatter(statusCodes.OK, "Quote created successfully", {
-        quick_quote_id: quick_quote_id,
+        quote: quick_quote,
       })
     );
   } catch (error) {
@@ -699,6 +700,12 @@ exports.createQuoteNvest = async (request, reply) => {
 exports.getQuote = async (request, reply) => {
   try {
     const quote = await quoteUtils.getQuote(request.body);
+    const buffer = Buffer.from(quote.pdfData, "base64");
+    const quotePdf = await azureBlob.uploadFileToBlob(
+      request.body.QuotationNo,
+      buffer
+    );
+    quote["quotePdf"] = quotePdf;
     if (quote) {
       await event.insertEventTransaction(request.isValid);
       return reply.status(statusCodes.OK).send(

@@ -17,7 +17,7 @@ const createQuote = async (quoteData) => {
       httpsAgent: agent,
       headers: headers,
     });
-    return response.data.QuotationId;
+    return response.data;
   } catch (error) {
     throw error;
   }

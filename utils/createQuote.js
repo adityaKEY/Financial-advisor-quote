@@ -56,14 +56,30 @@ const getFields = async (quoteData) => {
     });
 
     const { ptPptList, formInputs } = response.data;
-    const pptList = ptPptList.map(item => ({ key: item.PPTName, value: item.PPTValue }));
-    const ptList = ptPptList.map(item => ({ key: item.PTName, value: item.PTValue }));
 
-    formInputs.forEach(input => {
-      if (input.fieldType === 'List' && input.listItems.length === 0) {
-        if (input.keywordName === '@PR_PPT') {
+    // Filter out duplicates based on PPTName and PTName
+    const pptList = [
+      ...new Map(
+        ptPptList.map((item) => [
+          item.PPTName,
+          { key: item.PPTName, value: item.PPTValue },
+        ])
+      ).values(),
+    ];
+    const ptList = [
+      ...new Map(
+        ptPptList.map((item) => [
+          item.PTName,
+          { key: item.PTName, value: item.PTValue },
+        ])
+      ).values(),
+    ];
+
+    formInputs.forEach((input) => {
+      if (input.fieldType === "List" && input.listItems.length === 0) {
+        if (input.keywordName === "@PR_PPT") {
           input.listItems = pptList;
-        } else if (input.keywordName === '@PR_PT') {
+        } else if (input.keywordName === "@PR_PT") {
           input.listItems = ptList;
         }
       }

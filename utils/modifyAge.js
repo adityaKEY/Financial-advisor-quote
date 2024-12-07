@@ -169,8 +169,8 @@ async function modifyAge(investmentObject) {
 
 const productData = {
   1016: { productName: "iSecure Plan", planType: "Term Plan" },
-  1024: { productName: "Saral Jevaan Bima", planType: "Term Plan" },
-  1027: {
+  14046: { productName: "Saral Jevaan Bima", planType: "Term Plan" },
+  14045: {
     productName: "Termassurance Life Insurance Protection",
     planType: "Term Plan",
   },

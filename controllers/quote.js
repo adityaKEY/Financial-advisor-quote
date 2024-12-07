@@ -472,7 +472,7 @@ exports.productRecommendation = async (request, reply) => {
       rejectUnauthorized: false,
     });
     const url = process.env.GETRULEURL;
-    premiumRawData["collectionName"] = "productRecommendationNvest";
+    premiumRawData["collectionName"] = "productRecommendationNvestNew";
     const response = await axios.get(url, {
       params: premiumRawData,
       httpsAgent: agent,
